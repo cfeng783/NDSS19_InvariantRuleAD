@@ -18,6 +18,7 @@ eps = 0.01 #same as in the paper
 sigma = 1.1 #buffer scaler
 theta_value = 0.1 #same as in the paper
 gamma_value = 0.9 #same as in the paper
+max_k=4
 
 'data preprocessing'
 training_data = pd.read_csv("../data/SWaT_Dataset_Normal_v1.csv")
@@ -296,10 +297,10 @@ keyArray = [['FIT101','LIT101','MV101','P101','P102'], ['AIT201','AIT202','AIT20
 print('Start rule mining')
 print('Gamma=' + str(gamma_value) + ', theta=' + str(theta_value))
 start_time = time.time()
-rule_list_0, item_dict_0 = Util.getRules(training_data, dead_entries, keyArray, mode=0, gamma=gamma_value, max_k=4, theta=theta_value)
+rule_list_0, item_dict_0 = Util.getRules(training_data, dead_entries, keyArray, mode=0, gamma=gamma_value, max_k=max_k, theta=theta_value)
 print('finish mode 0')
 ##mode 2 is quite costly, use mode 1 if want to save time
-rule_list_1, item_dict_1 = Util.getRules(training_data, dead_entries, keyArray, mode=2, gamma=gamma_value, max_k=3, theta=theta_value)
+rule_list_1, item_dict_1 = Util.getRules(training_data, dead_entries, keyArray, mode=2, gamma=gamma_value, max_k=max_k, theta=theta_value)
 print('finish mode 1')
 end_time = time.time()
 time_cost = (end_time-start_time)*1.0/60
