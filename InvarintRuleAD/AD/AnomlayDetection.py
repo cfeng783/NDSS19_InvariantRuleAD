@@ -16,15 +16,19 @@ import time
 'parameters to tune'
 eps = 0.01 #same as in the paper
 sigma = 1.1 #buffer scaler
-theta_value = 0.1 #same as in the paper
+theta_value = 0.08 #same as in the paper
 gamma_value = 0.9 #same as in the paper
 max_k=4
 
 'data preprocessing'
-training_data = pd.read_csv("../data/SWaT_Dataset_Normal_v1.csv")
-test_data = pd.read_csv("../data/SWaT_Dataset_Attack_v1.csv")
-training_data = training_data.drop('Timestamp',1)
-training_data = training_data.drop('Normal/Attack',1)
+training_data,test_data = [],[]
+for i in range(5):
+    training_data.append(pd.read_csv("../data/SWaT_Dataset_Normal_Part"+str(i)+".csv"))
+    test_data.append(pd.read_csv("../data/SWaT_Dataset_Attack_Part"+str(i)+".csv"))
+training_data = pd.concat(training_data)
+test_data = pd.concat(test_data)
+training_data = training_data.reset_index(drop=True)
+test_data = test_data.reset_index(drop=True)
  
  
  
@@ -136,6 +140,10 @@ for entry in training_data:
                 dead_entries.append(entry + '=' + str(unique_value))
                 training_data = pd.concat([training_data, newdf], axis=1)
                 training_data = training_data.drop(entry, 1)
+                
+                for test_value in test_data[entry].unique():
+                    if test_value != unique_value and len(test_data.loc[test_data[entry] == test_value,:])/len(test_data) < eps:
+                        anomaly_entries.append(entry + '=' + str(test_value))
                        
                 testdf = pd.get_dummies(test_data[entry]).rename(columns=lambda x: entry + '=' + str(x))
                 test_data = pd.concat([test_data, testdf], axis=1)
@@ -274,25 +282,9 @@ test_data.to_csv("../data/after_event_attack.csv", index=False)
 # test_data = pd.read_csv("../data/after_event_attack.csv")
 
 'Rule mining'
-#SWaT key array
 keyArray = [['FIT101','LIT101','MV101','P101','P102'], ['AIT201','AIT202','AIT203','FIT201','MV201','P201','P202','P203','P204','P205','P206'],
          ['DPIT301','FIT301','LIT301','MV301','MV302','MV303','MV304','P301','P302'], ['AIT401','AIT402','FIT401','LIT401','P401','P402','P403','P404','UV401'],
          ['AIT501','AIT502','AIT503','AIT504','FIT501','FIT502','FIT503','FIT504','P501','P502','PIT501','PIT502','PIT503'],['FIT601','P601','P602','P603']]
-
-#WADI key array
-# keyArray = [ ['1_AIT_001_PV','1_AIT_002_PV','1_AIT_003_PV','1_AIT_004_PV','1_AIT_005_PV','1_FIT_001_PV','1_LS_001_AL','1_LS_002_AL','1_LT_001_PV','1_MV_001_STATUS',
-#               '1_MV_002_STATUS','1_MV_003_STATUS','1_MV_004_STATUS','1_P_001_STATUS','1_P_002_STATUS','1_P_003_STATUS','1_P_004_STATUS','1_P_005_STATUS','1_P_006_STATUS'],
-#             ['2_DPIT_001_PV','2_FIC_101_CO','2_FIC_101_PV','2_FIC_101_SP','2_FIC_201_CO','2_FIC_201_PV','2_FIC_201_SP','2_FIC_301_CO','2_FIC_301_PV','2_FIC_301_SP',
-#              '2_FIC_401_CO','2_FIC_401_PV','2_FIC_401_SP','2_FIC_501_CO','2_FIC_501_PV','2_FIC_501_SP','2_FIC_601_CO','2_FIC_601_PV','2_FIC_601_SP','2_FIT_001_PV','2_FIT_002_PV',
-#              '2_FIT_003_PV','2_FQ_101_PV','2_FQ_201_PV','2_FQ_301_PV','2_FQ_401_PV','2_FQ_501_PV','2_FQ_601_PV','2_LS_001_AL','2_LS_002_AL','2_LS_101_AH','2_LS_101_AL','2_LS_201_AH',
-#              '2_LS_201_AL','2_LS_301_AH','2_LS_301_AL','2_LS_401_AH','2_LS_401_AL','2_LS_501_AH','2_LS_501_AL','2_LS_601_AH','2_LS_601_AL','2_LT_001_PV','2_LT_002_PV','2_MCV_007_CO',
-#              '2_MCV_101_CO','2_MCV_201_CO','2_MCV_301_CO','2_MCV_401_CO','2_MCV_501_CO','2_MCV_601_CO','2_MV_001_STATUS','2_MV_002_STATUS','2_MV_003_STATUS','2_MV_004_STATUS','2_MV_005_STATUS',
-#              '2_MV_006_STATUS','2_MV_009_STATUS','2_MV_101_STATUS','2_MV_201_STATUS','2_MV_301_STATUS','2_MV_401_STATUS','2_MV_501_STATUS','2_MV_601_STATUS','2_P_001_STATUS',
-#              '2_P_002_STATUS','2_P_003_SPEED','2_P_003_STATUS','2_P_004_SPEED','2_P_004_STATUS','2_PIC_003_CO','2_PIC_003_PV','2_PIC_003_SP','2_PIT_001_PV','2_PIT_002_PV','2_PIT_003_PV',
-#              '2_SV_101_STATUS','2_SV_201_STATUS','2_SV_301_STATUS','2_SV_401_STATUS','2_SV_501_STATUS','2_SV_601_STATUS','2A_AIT_001_PV','2A_AIT_002_PV','2A_AIT_003_PV','2A_AIT_004_PV',
-#              '2B_AIT_001_PV','2B_AIT_002_PV','2B_AIT_003_PV','2B_AIT_004_PV'],
-#             ['3_AIT_001_PV','3_AIT_002_PV','3_AIT_003_PV','3_AIT_004_PV','3_AIT_005_PV','3_FIT_001_PV','3_LS_001_AL','3_LT_001_PV','3_MV_001_STATUS','3_MV_002_STATUS','3_MV_003_STATUS',
-#              '3_P_001_STATUS','3_P_002_STATUS','3_P_003_STATUS','3_P_004_STATUS','LEAK_DIFF_PRESSURE','PLANT_START_STOP_LOG','TOTAL_CONS_REQUIRED_FLOW'] ]
 
 print('Start rule mining')
 print('Gamma=' + str(gamma_value) + ', theta=' + str(theta_value))
