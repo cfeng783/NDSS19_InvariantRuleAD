@@ -65,7 +65,7 @@ def conRangeEntry(target_var, lb, ub, max_dict, min_dict):
 
 def getRules(training_data, dead_entries, keyArray, mode=0, gamma=0.4, max_k=4, theta=0.1):
     data = training_data.copy()
-    print(len(data))
+#     print(len(data))
     'drop dead entries'
     for entry in dead_entries:
         data = data.drop(entry, 1)
